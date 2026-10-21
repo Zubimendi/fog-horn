@@ -4,8 +4,8 @@ package tlsprober
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/zubimendi/fog-horn/internal/model"
@@ -50,14 +50,14 @@ func Check(ctx context.Context, cfg Config) Result {
 	rawConn, err := guardedDialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		var ssrfErr *dialer.ErrSSRFBlocked
-		if isSsrf(err, ssrfErr) {
+		if errors.As(err, &ssrfErr) {
 			return Result{Class: model.ClassConfigError, Reason: "SSRF: blocked address"}
 		}
 		return Result{Class: model.ClassTargetFailure, Reason: "connection failed"}
 	}
 	defer rawConn.Close()
 
-	tlsConn := tls.Client(rawConn.(*net.TCPConn), &tls.Config{
+	tlsConn := tls.Client(rawConn, &tls.Config{
 		ServerName: cfg.Host,
 	})
 	if err := tlsConn.HandshakeContext(ctx); err != nil {

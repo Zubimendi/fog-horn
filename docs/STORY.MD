@@ -4,9 +4,25 @@
 
 ---
 
+![Foghorn Medium Article Thumbnail](assets/medium_article_thumbnail.jpg)
+
 ## 📢 Social Media Posts & Tags
 
-### LinkedIn Post
+### 🏷️ Medium Publication Tags
+
+**Primary Story Topics (Select 5 when publishing on Medium):**
+1. `Golang`
+2. `Software Engineering`
+3. `DevOps`
+4. `System Design`
+5. `Site Reliability Engineering`
+
+**In-Article Search Tags:**
+`#Golang` `#DistributedSystems` `#DevOps` `#SRE` `#SystemDesign` `#CloudComputing` `#PostgreSQL` `#OpenSource` `#SoftwareArchitecture` `#WebDevelopment`
+
+---
+
+### 💼 LinkedIn Post & Hashtags
 
 ```markdown
 Most uptime monitors lie. Not maliciously, but by architecture.
@@ -29,11 +45,11 @@ Core architectural decisions:
 Check out the full open-source architecture, implementation plan, and Postman collection on GitHub:
 👉 https://github.com/zubimendi/fog-horn
 
-#Golang #SystemDesign #DistributedSystems #DevOps #SRE #SoftwareEngineering #CloudArchitecture #BackendEngineering #PostgreSQL #Observability
+#Golang #SystemDesign #DistributedSystems #DevOps #SRE #SoftwareEngineering #CloudArchitecture #BackendEngineering #PostgreSQL #Observability #OpenSource #Reliability
 ```
 
-### Medium Tags
-`#Go` `#SoftwareArchitecture` `#DevOps` `#SRE` `#DistributedSystems` `#PostgreSQL`
+**LinkedIn Hashtag List:**
+`#Golang` `#SystemDesign` `#DistributedSystems` `#DevOps` `#SRE` `#SoftwareEngineering` `#CloudArchitecture` `#BackendEngineering` `#PostgreSQL` `#Observability` `#OpenSource` `#Reliability`
 
 ---
 

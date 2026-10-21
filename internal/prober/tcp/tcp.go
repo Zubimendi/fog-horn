@@ -1,8 +1,8 @@
-// Package tcpprober implements SSRF-safe TCP connect checks.
 package tcpprober
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,7 +42,7 @@ func Check(ctx context.Context, cfg Config) Result {
 
 	if err != nil {
 		var ssrfErr *dialer.ErrSSRFBlocked
-		if isSSRFError(err, &ssrfErr) {
+		if errors.As(err, &ssrfErr) {
 			return Result{Class: model.ClassConfigError, Reason: "SSRF: blocked address"}
 		}
 		return Result{
@@ -57,28 +57,4 @@ func Check(ctx context.Context, cfg Config) Result {
 		Class:     model.ClassOK,
 		ConnectMS: connectMS,
 	}
-}
-
-func isSSRFError(err error, target **dialer.ErrSSRFBlocked) bool {
-	if err == nil {
-		return false
-	}
-	var e *dialer.ErrSSRFBlocked
-	if asErr(err, &e) {
-		if target != nil {
-			*target = e
-		}
-		return true
-	}
-	return false
-}
-
-func asErr(err error, target interface{}) bool {
-	type asI interface {
-		As(interface{}) bool
-	}
-	if a, ok := err.(asI); ok {
-		return a.As(target)
-	}
-	return false
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/zubimendi/fog-horn/internal/config"
 	"github.com/zubimendi/fog-horn/internal/db"
 	"github.com/zubimendi/fog-horn/internal/metrics"
+	"github.com/zubimendi/fog-horn/internal/publisher"
 	"github.com/zubimendi/fog-horn/internal/snapshot"
 )
 
@@ -75,13 +76,13 @@ func publishAllTenants(ctx context.Context, pool *pgxpool.Pool, store snapshot.S
 	rows.Close()
 
 	for _, tid := range tenantIDs {
-		snap, err := snapshot.BuildSnapshot(ctx, pool, tid)
+		snap, err := publisher.BuildSnapshot(ctx, pool, tid)
 		if err != nil {
 			log.Printf("publisher: build snapshot for %s: %v", tid, err)
 			continue
 		}
 
-		if err := snapshot.Publish(ctx, pool, store, snap); err != nil {
+		if err := publisher.Publish(ctx, pool, store, snap); err != nil {
 			log.Printf("publisher: publish snapshot for %s: %v", tid, err)
 			continue
 		}

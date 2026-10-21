@@ -55,6 +55,43 @@ const (
 	StatePaused  TargetStateValue = "PAUSED"
 )
 
+// ComponentStatus enumerates the derived status values.
+type ComponentStatus string
+
+const (
+	StatusOperational         ComponentStatus = "operational"
+	StatusUnderMaintenance    ComponentStatus = "under_maintenance"
+	StatusDegradedPerformance ComponentStatus = "degraded_performance"
+	StatusPartialOutage       ComponentStatus = "partial_outage"
+	StatusMajorOutage         ComponentStatus = "major_outage"
+)
+
+// SeverityRank maps a status to an integer for max-severity comparison.
+func SeverityRank(s ComponentStatus) int {
+	switch s {
+	case StatusMajorOutage:
+		return 5
+	case StatusPartialOutage:
+		return 4
+	case StatusDegradedPerformance:
+		return 3
+	case StatusUnderMaintenance:
+		return 2
+	case StatusOperational:
+		return 1
+	default:
+		return 0
+	}
+}
+
+// MaxSeverity returns the higher severity status.
+func MaxSeverity(a, b ComponentStatus) ComponentStatus {
+	if SeverityRank(a) >= SeverityRank(b) {
+		return a
+	}
+	return b
+}
+
 // IncidentStatus enumerates valid incident lifecycle states.
 type IncidentStatus string
 
