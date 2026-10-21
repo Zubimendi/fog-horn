@@ -1,0 +1,440 @@
+{
+  "info": {
+    "name": "Foghorn Monitoring & Status Page API",
+    "description": "Comprehensive Postman collection for Foghorn — multi-location uptime monitoring, backdated state intervals, append-only incidents, retroactive maintenance, and zero-database status page hosting.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "pageHostUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "00000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "targetId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "incidentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "heartbeatToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Observability",
+      "item": [
+        {
+          "name": "Liveness Probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": ["{{baseUrl}}"],
+              "path": ["healthz"]
+            }
+          }
+        },
+        {
+          "name": "Readiness Probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/readyz",
+              "host": ["{{baseUrl}}"],
+              "path": ["readyz"]
+            }
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["metrics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Targets",
+      "item": [
+        {
+          "name": "Create HTTP Target",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) { pm.collectionVariables.set('targetId', jsonData.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"name\": \"Main API Service\",\n  \"type\": \"HTTP\",\n  \"config\": {\n    \"url\": \"https://example.com\",\n    \"regex\": \"Example Domain\"\n  },\n  \"expected_status\": 200,\n  \"interval\": \"30s\",\n  \"n_fail\": 3,\n  \"n_recover\": 2,\n  \"quorum\": 0.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"]
+            }
+          }
+        },
+        {
+          "name": "Create TCP Target",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"name\": \"Postgres DB Port\",\n  \"type\": \"TCP\",\n  \"config\": {\n    \"host\": \"db.internal.example.com\",\n    \"port\": 5432\n  },\n  \"interval\": \"60s\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"]
+            }
+          }
+        },
+        {
+          "name": "Create DNS Target",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"name\": \"Core DNS Resolution\",\n  \"type\": \"DNS\",\n  \"config\": {\n    \"host\": \"one.one.one.one\",\n    \"query_type\": \"A\",\n    \"expected_value\": \"1.1.1.1\"\n  },\n  \"interval\": \"60s\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"]
+            }
+          }
+        },
+        {
+          "name": "Create TLS Target",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"name\": \"Public SSL Expiry Check\",\n  \"type\": \"TLS\",\n  \"config\": {\n    \"host\": \"example.com\",\n    \"port\": 443\n  },\n  \"interval\": \"300s\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"]
+            }
+          }
+        },
+        {
+          "name": "Create Heartbeat (Dead-Man) Target",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.heartbeat_token) { pm.collectionVariables.set('heartbeatToken', jsonData.heartbeat_token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"name\": \"Nightly Backup Cron\",\n  \"type\": \"HEARTBEAT\",\n  \"interval\": \"120s\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"]
+            }
+          }
+        },
+        {
+          "name": "List Tenant Targets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets?tenant_id={{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets"],
+              "query": [
+                { "key": "tenant_id", "value": "{{tenantId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Target Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets/{{targetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets", "{{targetId}}"]
+            }
+          }
+        },
+        {
+          "name": "Pause Target",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets/{{targetId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets", "{{targetId}}", "pause"]
+            }
+          }
+        },
+        {
+          "name": "Resume Target",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/targets/{{targetId}}/resume",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "targets", "{{targetId}}", "resume"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Heartbeat Pings",
+      "item": [
+        {
+          "name": "Heartbeat Ping Success",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping/{{heartbeatToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ping", "{{heartbeatToken}}"]
+            }
+          }
+        },
+        {
+          "name": "Heartbeat Explicit Fail",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping/{{heartbeatToken}}/fail",
+              "host": ["{{baseUrl}}"],
+              "path": ["ping", "{{heartbeatToken}}", "fail"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Incidents",
+      "item": [
+        {
+          "name": "Create Incident",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) { pm.collectionVariables.set('incidentId', jsonData.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"title\": \"Elevated API Error Rates\",\n  \"initial_message\": \"We are investigating increased 500 errors across the primary API gateway.\",\n  \"posted_by\": \"oncall-eng\",\n  \"impact\": \"MAJOR_OUTAGE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/incidents",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "incidents"]
+            }
+          }
+        },
+        {
+          "name": "Append Incident Update (Identified)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IDENTIFIED\",\n  \"message\": \"Root cause isolated to a connection pool exhaustion in the primary database replica.\",\n  \"posted_by\": \"oncall-lead\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/incidents/{{incidentId}}/updates",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "incidents", "{{incidentId}}", "updates"]
+            }
+          }
+        },
+        {
+          "name": "Append Incident Update (Monitoring)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"MONITORING\",\n  \"message\": \"Fix deployed. Error rates normalized below 0.01%. Monitoring recovery for 15 minutes.\",\n  \"posted_by\": \"oncall-lead\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/incidents/{{incidentId}}/updates",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "incidents", "{{incidentId}}", "updates"]
+            }
+          }
+        },
+        {
+          "name": "Resolve Incident",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\",\n  \"message\": \"Incident resolved. All services operating normally.\",\n  \"posted_by\": \"oncall-lead\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/incidents/{{incidentId}}/updates",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "incidents", "{{incidentId}}", "updates"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maintenance",
+      "item": [
+        {
+          "name": "Schedule Maintenance",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"title\": \"PostgreSQL 16 Minor Upgrade\",\n  \"starts_at\": \"2026-11-01T02:00:00Z\",\n  \"ends_at\": \"2026-11-01T04:00:00Z\",\n  \"tz\": \"UTC\",\n  \"created_by\": \"infra-team\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "maintenance"]
+            }
+          }
+        },
+        {
+          "name": "Record Retroactive Maintenance Window",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenantId}}\",\n  \"title\": \"Unannounced Upstream Fiber Cut\",\n  \"starts_at\": \"2026-10-15T08:00:00Z\",\n  \"ends_at\": \"2026-10-15T09:30:00Z\",\n  \"retroactive\": true,\n  \"reason\": \"Upstream ISP provider confirmed transit fiber severance under ticket #88412.\",\n  \"created_by\": \"director-eng\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "maintenance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Page Host (Zero-DB Status Page)",
+      "item": [
+        {
+          "name": "Get Public Status HTML",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{pageHostUrl}}/status/{{tenantId}}",
+              "host": ["{{pageHostUrl}}"],
+              "path": ["status", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Public Status JSON",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{pageHostUrl}}/status/{{tenantId}}.json",
+              "host": ["{{pageHostUrl}}"],
+              "path": ["status", "{{tenantId}}.json"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
